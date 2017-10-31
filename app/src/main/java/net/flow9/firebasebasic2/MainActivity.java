@@ -16,6 +16,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
 
     // 파이어베이스 인증모듈 사용 전역변수
     private FirebaseAuth mAuth;
+    FirebaseDatabase database;
+    DatabaseReference userRef;
 
     EditText editEmail;
     EditText editPassword;
@@ -38,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
+        userRef = database.getReference("users");
 
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
@@ -92,6 +99,11 @@ public class MainActivity extends AppCompatActivity {
                                             , Toast.LENGTH_SHORT).show();
                                 }
                             });
+
+                        // 데이터베이스에 token 추가
+                        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+                        Log.d("MSG","token="+refreshedToken);
+                        userRef.child(user.getUid()).setValue(refreshedToken);
 
                     } else {
                         Toast.makeText(MainActivity.this, "Authentication failed.",
