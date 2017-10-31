@@ -1,5 +1,6 @@
 package net.flow9.firebasebasic2;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
 
     EditText editEmail;
     EditText editPassword;
+    EditText signEmail;
+    EditText signPassword;
 
     TextView infoEmail;
     TextView infoPassword;
@@ -38,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
+        signEmail = findViewById(R.id.signEmail);
+        signPassword = findViewById(R.id.signPassword);
 
         infoEmail = findViewById(R.id.infoEmail);
         infoPassword = findViewById(R.id.infoPassword);
@@ -53,12 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
     // 사용자 등록
     public void signup(View view) {
-        // @ 하나, . 하나 필수 , 영문, 숫자, _, -
         String email = editEmail.getText().toString();
-        // 특수문자 하나이상 !, @, #, $, %, ^, &, *, (, )
-        // 영문, 숫자
         String password = editPassword.getText().toString();
-
         // validation check
         // 정규식
         if(!isValidEmail(email) || !isValidPassword(password)){
@@ -133,7 +134,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // 사용자 로그인
-    public void signin(String email, String password){
+    public void signin(View view){
+        String email = signEmail.getText().toString();
+        String password = signPassword.getText().toString();
+
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                 @Override
@@ -144,10 +148,14 @@ public class MainActivity extends AppCompatActivity {
                         // 이메일 검증 확인
                         if(user.isEmailVerified()){
                             // 다음 페이지로 이동
+                            Intent intent = new Intent(MainActivity.this,StorageActivity.class);
+                            startActivity(intent);
+                            finish();
                         }else{
-                            // 이메일을 확인하셔야 됩니다.
+                            Toast.makeText(MainActivity.this
+                                    ,"이메일을 확인하셔야 합니다"
+                                    , Toast.LENGTH_SHORT ).show();
                         }
-
                     } else {
                         Toast.makeText(MainActivity.this, "Authentication failed.",
                                 Toast.LENGTH_SHORT).show();
