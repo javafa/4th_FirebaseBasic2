@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -24,8 +25,18 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import okio.BufferedSink;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class StorageActivity extends AppCompatActivity implements UserAdapter.Callback{
     // 파일 저장소
@@ -55,6 +66,50 @@ public class StorageActivity extends AppCompatActivity implements UserAdapter.Ca
 
     // 메시지 전송
     public void send(View view){
+        String token = textToken.getText().toString();
+        String msg = editMsg.getText().toString();
+
+        if(token == null || "".equals(token)){
+            Toast.makeText(this, "받는사람을 선택하세요", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(msg == null || "".equals(msg)){
+            Toast.makeText(this, "메시지를 입력하세요", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String json = "{\"to\":\""+token+"\", \"msg\":\""+msg+"\"}";
+
+        // 레트로핏 선언
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://192.168.1.104:8090/")
+                .build();
+        // 인터페이스와 결합
+        IRetro service = retrofit.create(IRetro.class);
+        RequestBody body = RequestBody.create(MediaType.parse("plain/text"), json);
+        // 서비스로 서버 연결준비
+        Call<ResponseBody> remote = service.sendNotification(body);
+        // 실제 연결후 데이터 처리
+        remote.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()){
+                    ResponseBody data = response.body();
+                    try {
+                        Toast.makeText(StorageActivity.this
+                                , data.string()
+                                , Toast.LENGTH_SHORT).show();
+                    }catch(Exception e){e.printStackTrace();}
+                }else{
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("Retro",t.getMessage());
+            }
+        });
 
     }
 
@@ -114,12 +169,15 @@ public class StorageActivity extends AppCompatActivity implements UserAdapter.Ca
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // 데이터 변경 내역이 있으면 배열에 담고
+
                 List<User> data = new ArrayList<>();
+                // 데이터 변경 내역이 있으면 반복문을 돌면서 처리
                 for(DataSnapshot item : dataSnapshot.getChildren()){
-                    String id = item.getKey();
-                    String token = (String) item.getValue();
-                    data.add(new User(id,token));
+
+                    // value 부분만 가져와서 User 클래스로 캐스팅한다
+                    User user = item.getValue(User.class);
+                    data.add(user);
+
                 }
                 // 아답터에 반영
                 adapter.setDataAndRefresh(data);

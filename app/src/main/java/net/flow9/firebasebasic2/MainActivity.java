@@ -100,10 +100,10 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
 
-                        // 데이터베이스에 token 추가
+                        // 데이터베이스에 사용자 정보 추가
                         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-                        Log.d("MSG","token="+refreshedToken);
-                        userRef.child(user.getUid()).setValue(refreshedToken);
+                        User data = new User(user.getUid(), refreshedToken, user.getEmail());
+                        userRef.child(user.getUid()).setValue(data);
 
                     } else {
                         Toast.makeText(MainActivity.this, "Authentication failed.",

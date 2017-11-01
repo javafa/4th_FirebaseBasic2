@@ -5,15 +5,17 @@ package net.flow9.firebasebasic2;
  */
 
 public class User {
-    String id;
-    String token;
+    public String id;
+    public String token;
+    public String email;
 
     public User(){
         // default for firebase realtime database
     }
 
-    public User(String id, String token){
+    public User(String id, String token, String email){
         this.id = id;
         this.token = token;
+        this.email = email;
     }
 }
